@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using MyCodeCamp.Data;
 using MyCodeCamp.Data.Entities;
 
@@ -24,22 +26,49 @@ namespace MyCodeCamp.Controllers
       return Ok(camps);
     }
 
-    [HttpGet("{id}")]
-    public IActionResult Get(int id, bool includeSpeakers = false) {
-      try {
+    [HttpGet("{id}", Name = "CampGet")]
+    public IActionResult Get(int id, bool includeSpeakers = false)
+    {
+      try
+      {
         Camp camp = null;
 
-        if (includeSpeakers) {
+        if (includeSpeakers)
+        {
           camp = _repo.GetCampWithSpeakers(id);
-        } else {
-          camp = _repo.GetCamp(id); 
+        }
+        else
+        {
+          camp = _repo.GetCamp(id);
         }
 
         if (camp == null) return NotFound($"Camp {id} was not found.");
 
         return Ok(camp);
-      } catch {
-        
+      }
+      catch
+      {
+
+      }
+
+      return BadRequest();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody]Camp model)
+    {
+      try
+      {
+        _repo.Add(model);
+        if (await _repo.SaveAllAsync())
+        {
+          var newUri = Url.Link("CampGet", new { id = model.Id });
+          return Created(newUri, model);
+        }
+      }
+      catch (Exception)
+      {
+
       }
 
       return BadRequest();
