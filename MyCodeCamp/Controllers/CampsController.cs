@@ -92,7 +92,7 @@ namespace MyCodeCamp.Controllers
 
         if (oldCamp == null)
         {
-          return NotFound($"Cold not find a camp with an ID of {id}");
+          return NotFound($"Could not find a camp with an ID of {id}");
         }
 
         // Map model to oldCamp
@@ -100,19 +100,46 @@ namespace MyCodeCamp.Controllers
         oldCamp.Description = model.Description ?? oldCamp.Description;
         oldCamp.Location = model.Location ?? oldCamp.Location;
         oldCamp.Length = model.Length > 0 ? model.Length : oldCamp.Length;
-        oldCamp.EventDate = model.EventDate != DateTime.MinValue ? model.EventDate : oldCamp.EventDate;
+        oldCamp.EventDate = model.EventDate != DateTime.MinValue
+          ? model.EventDate : oldCamp.EventDate;
 
         if (await _repo.SaveAllAsync())
         {
           return Ok(oldCamp);
         }
       }
-      catch (Exception ex)
+      catch (Exception)
       {
 
       }
 
       return BadRequest("Couldn't update Camp");
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+      try
+      {
+        var oldCamp = _repo.GetCamp(id);
+
+        if (oldCamp == null)
+        {
+          return NotFound($"Could not find a camp with an ID of {id}");
+        }
+
+        _repo.Delete(oldCamp);
+        if (await _repo.SaveAllAsync())
+        {
+          return Ok();
+        }
+      }
+      catch (Exception)
+      {
+
+      }
+
+      return BadRequest("Could not delete Camp");
     }
   }
 }
