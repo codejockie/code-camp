@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using MyCodeCamp.Data;
 using MyCodeCamp.Data.Entities;
 
@@ -12,10 +13,12 @@ namespace MyCodeCamp.Controllers
   public class CampsController : Controller
   {
     private ICampRepository _repo;
+    private ILogger<CampsController> _logger;
 
-    public CampsController(ICampRepository repo)
+    public CampsController(ICampRepository repo, ILogger<CampsController> logger)
     {
       _repo = repo;
+      _logger = logger;
     }
 
     // GET: /<controller>/
@@ -59,16 +62,22 @@ namespace MyCodeCamp.Controllers
     {
       try
       {
+        _logger.LogInformation("Creating a new Code Camp");
+
         _repo.Add(model);
         if (await _repo.SaveAllAsync())
         {
           var newUri = Url.Link("CampGet", new { id = model.Id });
           return Created(newUri, model);
         }
+        else
+        {
+          _logger.LogWarning("Could not save Camp to the database");
+        }
       }
-      catch (Exception)
+      catch (Exception ex)
       {
-
+        _logger.LogError($"Threw exception while saving Camp: {ex}");
       }
 
       return BadRequest();
