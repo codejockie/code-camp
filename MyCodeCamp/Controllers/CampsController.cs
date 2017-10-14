@@ -82,5 +82,37 @@ namespace MyCodeCamp.Controllers
 
       return BadRequest();
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(int id, [FromBody]Camp model)
+    {
+      try
+      {
+        var oldCamp = _repo.GetCamp(id);
+
+        if (oldCamp == null)
+        {
+          return NotFound($"Cold not find a camp with an ID of {id}");
+        }
+
+        // Map model to oldCamp
+        oldCamp.Name = model.Name ?? oldCamp.Name;
+        oldCamp.Description = model.Description ?? oldCamp.Description;
+        oldCamp.Location = model.Location ?? oldCamp.Location;
+        oldCamp.Length = model.Length > 0 ? model.Length : oldCamp.Length;
+        oldCamp.EventDate = model.EventDate != DateTime.MinValue ? model.EventDate : oldCamp.EventDate;
+
+        if (await _repo.SaveAllAsync())
+        {
+          return Ok(oldCamp);
+        }
+      }
+      catch (Exception ex)
+      {
+
+      }
+
+      return BadRequest("Couldn't update Camp");
+    }
   }
 }
